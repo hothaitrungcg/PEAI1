@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { EvaluationStatus, AnalysisResult, TechniqueAnalysis } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const SYSTEM_PROMPT = `
 Bạn là một chuyên gia phân tích kỹ thuật thể thao (AI Sports Coach).
@@ -38,14 +38,15 @@ export const analyzeTechnique = async (
   mimeType: string
 ): Promise<AnalysisResult> => {
   try {
-    const modelId = 'gemini-2.0-flash';
+    const modelId = 'gemini-3.1-pro-preview';
+    const finalMimeType = mimeType || 'video/mp4';
 
     const response = await ai.models.generateContent({
       model: modelId,
       contents: {
         parts: [
           { text: SYSTEM_PROMPT },
-          { inlineData: { data: mediaBase64, mimeType: mimeType } },
+          { inlineData: { data: mediaBase64, mimeType: finalMimeType } },
         ],
       },
       config: {
@@ -92,7 +93,7 @@ export const analyzeTechnique = async (
             overallAdvice: { type: Type.STRING },
             evaluation: { 
               type: Type.STRING, 
-              enum: ["Hoàn thành tốt", "Hoàn thành", "Chưa hoàn thành"] 
+              description: "Must be one of: 'Hoàn thành tốt', 'Hoàn thành', 'Chưa hoàn thành'"
             }
           },
           required: ["summaryQuote", "phases", "overallAdvice", "evaluation"]
@@ -100,7 +101,8 @@ export const analyzeTechnique = async (
       },
     });
 
-    const jsonText = response.text || "{}";
+    let jsonText = response.text || "{}";
+    jsonText = jsonText.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
     const data = JSON.parse(jsonText) as TechniqueAnalysis;
     
     return {
