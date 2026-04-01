@@ -1,0 +1,8 @@
+{
+  "name": "AI Thể Thao - Phân Tích Ném Bóng 1.4",
+  "description": "Ứng dụng phân tích kỹ thuật ném bóng sử dụng AI để đánh giá tư thế và động tác của học sinh.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
